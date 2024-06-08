@@ -1,3 +1,4 @@
+# import python libraries
 from flask import Flask, jsonify, request, render_template, redirect, url_for, send_from_directory
 import pandas as pd
 import numpy as np
@@ -11,7 +12,7 @@ app = Flask(__name__)
 model = pd.read_csv('datamodel.csv')
 df = pd.read_csv('dataset.csv')
 
-# define tfabas matrix
+# define tf-abs matrix
 count_vectorizer = CountVectorizer()
 term_counts = count_vectorizer.fit_transform(model['stemming'])
 term_counts_array = term_counts.toarray()
@@ -20,6 +21,10 @@ tf_abs = term_counts_array * abs_freq
 from scipy.sparse import csr_matrix
 tfabs_matrix = csr_matrix(tf_abs)
 
+# construct cosine similarity score
+cosine_sim = cosine_similarity(tfabs_matrix, tfabs_matrix)
+
+# define swagger
 SWAGGER_URL = '/swagger'
 API_URL = '/static/swagger.json'
 SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
@@ -30,9 +35,6 @@ SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
     }
 )
 app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
-
-#construct cosine similarity matrix
-cosine_sim = cosine_similarity(tfabs_matrix, tfabs_matrix)
 
 # localhost:8080/api/recommendation
 @app.route('/api/recommendation', methods=['POST'])
@@ -56,7 +58,6 @@ def get_recommendations():
             "data_recommendation": recommendation_data_json,
             "data_index": data_index_json
         })
-
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 8080)))
